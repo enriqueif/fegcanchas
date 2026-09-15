@@ -284,6 +284,8 @@
   <input type="text" id="searchInput" placeholder="Buscar dirección o club (ej: Golf Club Social La Paz, Entre Ríos)">
   <button class="btn" id="searchBtn">Buscar</button>
   <button class="btn btn-primary" id="relocateBtn">Traer los 9 hoyos al centro del mapa</button>
+  <button class="btn" id="loadCsvBtn">Cargar cancha desde CSV</button>
+  <input type="file" id="csvFileInput" accept=".csv" style="display:none;">
   <span id="searchStatus" class="search-status"></span>
 </div>
 
@@ -777,7 +779,116 @@
     document.getElementById('searchStatus').textContent = 'Los 9 hoyos se reubicaron en el centro del mapa.';
   }
 
-  document.getElementById('relocateBtn').addEventListener('click', relocateAllHoles);
+  // --- Cargar cancha desde CSV (mismo formato que exporta esta herramienta) ---
+  function parseCsvLine(line){
+    // Parser simple que respeta comillas dobles y comas dentro de campos
+    const result = [];
+    let cur = '';
+    let inQuotes = false;
+    for(let i=0;i<line.length;i++){
+      const ch = line[i];
+      if(inQuotes){
+        if(ch === '"'){
+          if(line[i+1] === '"'){ cur += '"'; i++; }
+          else { inQuotes = false; }
+        } else {
+          cur += ch;
+        }
+      } else {
+        if(ch === '"'){ inQuotes = true; }
+        else if(ch === ','){ result.push(cur); cur = ''; }
+        else { cur += ch; }
+      }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  function loadCsvText(text){
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+    if(lines.length < 2){
+      document.getElementById('searchStatus').textContent = 'El CSV está vacío o no tiene filas de datos.';
+      return;
+    }
+    const headers = parseCsvLine(lines[0]).map(h => h.trim());
+    const idx = {
+      hoyo: headers.indexOf('Hoyo'),
+      categoria: headers.indexOf('Categoria'),
+      dist: headers.indexOf('Dist_yardas'),
+      par: headers.indexOf('Par'),
+      lat: headers.indexOf('Latitud'),
+      lng: headers.indexOf('Longitud')
+    };
+    if(idx.hoyo === -1 || idx.categoria === -1 || idx.lat === -1 || idx.lng === -1){
+      document.getElementById('searchStatus').textContent = 'El CSV no tiene las columnas esperadas (Hoyo, Categoria, Latitud, Longitud).';
+      return;
+    }
+
+    // Reiniciar los 9 hoyos antes de cargar
+    const loaded = {};
+    for(let i=1;i<=N_HOLES;i++){ loaded[i] = { par: null }; }
+
+    for(let r=1;r<lines.length;r++){
+      const cols = parseCsvLine(lines[r]);
+      const hoyoNum = parseInt(cols[idx.hoyo]);
+      if(!hoyoNum || hoyoNum < 1 || hoyoNum > N_HOLES) continue;
+      const categoria = (cols[idx.categoria] || '').trim();
+      const lat = parseFloat(cols[idx.lat]);
+      const lng = parseFloat(cols[idx.lng]);
+      if(isNaN(lat) || isNaN(lng)) continue;
+
+      if(!loaded[hoyoNum]) loaded[hoyoNum] = { par: null };
+
+      if(categoria === 'Green'){
+        loaded[hoyoNum].green = [lat, lng];
+        const parVal = idx.par !== -1 ? parseInt(cols[idx.par]) : null;
+        loaded[hoyoNum].par = parVal || null;
+      } else if(categoria === 'Águila' || categoria === 'Aguila'){
+        loaded[hoyoNum].eagleTee = [lat, lng];
+      } else if(categoria === 'Birdie'){
+        loaded[hoyoNum].birdieTee = [lat, lng];
+      }
+      // Las filas "Línea Águila" / "Línea Birdie" (si vinieran de un GeoJSON exportado como CSV) se ignoran acá:
+      // los tees y greens ya traen toda la posición necesaria.
+    }
+
+    let loadedCount = 0;
+    for(let i=0;i<N_HOLES;i++){
+      const hoyoNum = i+1;
+      const src = loaded[hoyoNum];
+      if(!src) continue;
+      if(src.green) holes[i].green = src.green;
+      if(src.eagleTee) holes[i].eagleTee = src.eagleTee;
+      if(src.birdieTee) holes[i].birdieTee = src.birdieTee;
+      holes[i].par = src.par || null;
+      recalcHole(i);
+      if(src.green || src.eagleTee || src.birdieTee) loadedCount++;
+    }
+
+    activeIndex = 0;
+    if(holes[0] && holes[0].green){
+      map.setView(holes[0].green, 17);
+    }
+    drawActiveHole();
+    renderAll();
+    document.getElementById('searchStatus').textContent = `Cancha cargada: ${loadedCount} de ${N_HOLES} hoyos con datos.`;
+  }
+
+  document.getElementById('loadCsvBtn').addEventListener('click', () => {
+    document.getElementById('csvFileInput').click();
+  });
+
+  document.getElementById('csvFileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => loadCsvText(ev.target.result);
+    reader.onerror = () => {
+      document.getElementById('searchStatus').textContent = 'No se pudo leer el archivo.';
+    };
+    reader.readAsText(file, 'UTF-8');
+    e.target.value = '';
+  });
 
 
   drawActiveHole();
