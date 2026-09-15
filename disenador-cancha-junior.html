@@ -243,6 +243,31 @@
     color:var(--muted);
     border-top:1px solid rgba(244,241,230,0.08);
   }
+  .locate-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 20px;
+    background:var(--forest);
+    border-bottom:1px solid rgba(244,241,230,0.12);
+    flex-wrap:wrap;
+  }
+  .locate-bar input{
+    flex:1;
+    min-width:220px;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    padding:8px 12px;
+    border-radius:7px;
+    border:1px solid rgba(244,241,230,0.25);
+    background:rgba(244,241,230,0.06);
+    color:var(--cream);
+  }
+  .locate-bar input:focus{outline:none;border-color:var(--line);}
+  .search-status{
+    font-size:12px;
+    color:var(--muted);
+  }
 </style>
 </head>
 <body>
@@ -254,6 +279,13 @@
   </div>
   <div class="active-hole-label" id="activeHoleLabel">Editando: <strong>Hoyo 1</strong></div>
 </header>
+
+<div class="locate-bar">
+  <input type="text" id="searchInput" placeholder="Buscar dirección o club (ej: Golf Club Social La Paz, Entre Ríos)">
+  <button class="btn" id="searchBtn">Buscar</button>
+  <button class="btn btn-primary" id="relocateBtn">Traer los 9 hoyos al centro del mapa</button>
+  <span id="searchStatus" class="search-status"></span>
+</div>
 
 <div class="layout">
   <div class="sidebar">
@@ -700,7 +732,54 @@
     });
   });
 
-  // --- init ---
+  // --- Buscar dirección (Nominatim / OpenStreetMap) ---
+  async function searchLocation(){
+    const query = document.getElementById('searchInput').value.trim();
+    const status = document.getElementById('searchStatus');
+    if(!query) return;
+    status.textContent = 'Buscando...';
+    try{
+      const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query);
+      const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
+      const data = await res.json();
+      if(data && data.length > 0){
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        map.setView([lat, lon], 17);
+        status.textContent = 'Encontrado: ' + data[0].display_name.split(',').slice(0,3).join(',');
+      } else {
+        status.textContent = 'No se encontró esa ubicación. Probá con más detalle.';
+      }
+    } catch(err){
+      status.textContent = 'Error al buscar. Revisá tu conexión.';
+    }
+  }
+
+  document.getElementById('searchBtn').addEventListener('click', searchLocation);
+  document.getElementById('searchInput').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){ e.preventDefault(); searchLocation(); }
+  });
+
+  // --- Reubicar los 9 hoyos alrededor del centro actual del mapa ---
+  function relocateAllHoles(){
+    const c = map.getCenter();
+    const newCenter = [c.lat, c.lng];
+    holes.forEach((h, i) => {
+      const baseLat = newCenter[0] + (i - N_HOLES/2) * 0.0011;
+      const baseLng = newCenter[1] + ((i % 2 === 0) ? 0.0009 : -0.0009);
+      h.green = [baseLat + 0.00075, baseLng + 0.0006];
+      h.eagleTee = [baseLat, baseLng];
+      h.birdieTee = [baseLat + 0.0003, baseLng + 0.00025];
+      recalcHole(i);
+    });
+    drawActiveHole();
+    renderAll();
+    document.getElementById('searchStatus').textContent = 'Los 9 hoyos se reubicaron en el centro del mapa.';
+  }
+
+  document.getElementById('relocateBtn').addEventListener('click', relocateAllHoles);
+
+
   drawActiveHole();
   renderAll();
 </script>
