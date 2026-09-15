@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Diseñador de Cancha Junior — FEG</title>
+<meta name="author" content="Enrique Ignacio Fernández">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -234,6 +235,14 @@
     color:var(--muted);
   }
   .active-hole-label strong{color:var(--cream);font-family:'Space Grotesk',sans-serif;}
+  .credit-bar{
+    padding:6px 20px;
+    background:var(--forest-dark);
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    border-top:1px solid rgba(244,241,230,0.08);
+  }
 </style>
 </head>
 <body>
@@ -285,9 +294,12 @@
   <div class="active-hole-label" id="footerHint">Seleccioná un par para el hoyo activo y ajustá los pines sobre la imagen satelital.</div>
   <div style="display:flex;gap:10px;">
     <button class="btn" id="exportCsv">Descargar CSV (planilla FEG)</button>
-    <button class="btn btn-primary" id="copyCsv">Copiar CSV</button>
+    <button class="btn" id="copyCsv">Copiar CSV</button>
+    <button class="btn btn-primary" id="exportGeoJson">Descargar GeoJSON (puntos + líneas)</button>
   </div>
 </div>
+
+<div class="credit-bar">Diseñado por Enrique Ignacio Fernández para la Federación Entrerriana de Golf — 2026</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
@@ -570,6 +582,108 @@
     const a = document.createElement('a');
     a.href = url;
     a.download = 'cancha-junior.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // --- GeoJSON export: points (tees/greens) + lines (tee-to-green per category) ---
+  function buildGeoJson(){
+    const features = [];
+
+    holes.forEach((h, i) => {
+      const holeNum = i + 1;
+      const par = h.par || '';
+
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [h.green[1], h.green[0]] },
+        properties: {
+          Hoyo: holeNum,
+          Categoria: 'Green',
+          Dist_yardas: null,
+          Par: par,
+          Descripcion: `Hoyo ${holeNum} · Par ${par}`
+        }
+      });
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [h.eagleTee[1], h.eagleTee[0]] },
+        properties: {
+          Hoyo: holeNum,
+          Categoria: 'Águila',
+          Dist_yardas: h.eagleDist,
+          Par: '',
+          Descripcion: `Hoyo ${holeNum} · Par ${par} · Águila`
+        }
+      });
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [h.birdieTee[1], h.birdieTee[0]] },
+        properties: {
+          Hoyo: holeNum,
+          Categoria: 'Birdie',
+          Dist_yardas: h.birdieDist,
+          Par: '',
+          Descripcion: `Hoyo ${holeNum} · Par ${par} · Birdie`
+        }
+      });
+
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [h.eagleTee[1], h.eagleTee[0]],
+            [h.green[1], h.green[0]]
+          ]
+        },
+        properties: {
+          Hoyo: holeNum,
+          Categoria: 'Línea Águila',
+          Dist_yardas: h.eagleDist,
+          Par: par,
+          Descripcion: `Hoyo ${holeNum} · Águila · ${h.eagleDist} yd`
+        }
+      });
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [h.birdieTee[1], h.birdieTee[0]],
+            [h.green[1], h.green[0]]
+          ]
+        },
+        properties: {
+          Hoyo: holeNum,
+          Categoria: 'Línea Birdie',
+          Dist_yardas: h.birdieDist,
+          Par: par,
+          Descripcion: `Hoyo ${holeNum} · Birdie · ${h.birdieDist} yd`
+        }
+      });
+    });
+
+    return {
+      type: 'FeatureCollection',
+      properties: {
+        autor: 'Enrique Ignacio Fernández',
+        institucion: 'Federación Entrerriana de Golf',
+        anio: 2026
+      },
+      features
+    };
+  }
+
+  document.getElementById('exportGeoJson').addEventListener('click', () => {
+    const geojson = buildGeoJson();
+    const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/geo+json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cancha-junior.geojson';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
