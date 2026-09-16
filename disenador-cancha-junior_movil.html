@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diseñador de Cancha Junior — FEG</title>
+<meta name="author" content="Enrique Ignacio Fernández">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest-dark:#0B2B1D;
+    --forest:#123321;
+    --forest-light:#1B4A31;
+    --cream:#F4F1E6;
+    --aguila:#2A6F97;
+    --birdie:#E0932B;
+    --green-pin:#2D6A4F;
+    --line:#FFC857;
+    --muted:#9FB3A6;
+    --ok:#6FCF97;
+    --warn:#F26D6D;
+    --warn-bg:rgba(242,109,109,0.12);
+    --ok-bg:rgba(111,207,151,0.1);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    background:var(--forest-dark);
+    color:var(--cream);
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  header{
+    padding:14px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    border-bottom:1px solid rgba(244,241,230,0.12);
+    background:linear-gradient(180deg, var(--forest-dark), var(--forest));
+    flex-wrap:wrap;
+  }
+  header h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:18px;
+    font-weight:700;
+    margin:0;
+  }
+  header .sub{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  .layout{
+    flex:1;
+    display:flex;
+    min-height:0;
+    position:relative;
+  }
+  .sidebar{
+    width:360px;
+    flex-shrink:0;
+    background:var(--forest);
+    border-right:1px solid rgba(244,241,230,0.12);
+    display:flex;
+    flex-direction:column;
+    overflow-y:auto;
+  }
+  .sidebar-section{
+    padding:16px 18px;
+    border-bottom:1px solid rgba(244,241,230,0.1);
+  }
+  .sidebar-section h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--muted);
+    margin:0 0 10px;
+  }
+  .summary-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13px;
+    padding:5px 0;
+  }
+  .summary-row .label{color:var(--muted);}
+  .summary-row .value{font-family:'Space Grotesk',sans-serif;font-weight:600;}
+  .pill{
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:600;
+  }
+  .pill-ok{background:var(--ok-bg);color:var(--ok);}
+  .pill-warn{background:var(--warn-bg);color:var(--warn);}
+  .warnings-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-top:8px;
+  }
+  .warning-item{
+    font-size:12px;
+    background:var(--warn-bg);
+    color:#FFD8D8;
+    padding:6px 9px;
+    border-radius:6px;
+    border-left:3px solid var(--warn);
+  }
+  .no-warnings{
+    font-size:12px;
+    color:var(--ok);
+    background:var(--ok-bg);
+    padding:6px 9px;
+    border-radius:6px;
+    border-left:3px solid var(--ok);
+  }
+  .hole-row{
+    padding:10px 12px;
+    border-radius:8px;
+    margin-bottom:6px;
+    background:rgba(244,241,230,0.04);
+    cursor:pointer;
+    border:1px solid transparent;
+    transition:background 0.15s ease, border-color 0.15s ease;
+  }
+  .hole-row:hover{background:rgba(244,241,230,0.08);}
+  .hole-row.active{
+    background:rgba(255,200,87,0.1);
+    border-color:var(--line);
+  }
+  .hole-row-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:6px;
+  }
+  .hole-name{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:14px;
+  }
+  .par-select{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    background:rgba(244,241,230,0.08);
+    color:var(--cream);
+    border:1px solid rgba(244,241,230,0.25);
+    border-radius:5px;
+    padding:3px 6px;
+  }
+  .dist-line{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    padding:2px 0;
+  }
+  .dist-line .cat{display:flex;align-items:center;gap:6px;color:var(--muted);}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .dist-value{font-family:'Space Grotesk',sans-serif;font-weight:600;}
+  .dist-ok{color:var(--ok);}
+  .dist-warn{color:var(--warn);}
+  .dist-neutral{color:var(--muted);}
+  .map-wrap{
+    flex:1;
+    position:relative;
+    min-height:0;
+  }
+  #map{height:100%;}
+  .hint{
+    position:absolute;
+    top:12px;
+    left:50%;
+    transform:translateX(-50%);
+    background:rgba(11,43,29,0.92);
+    padding:6px 14px;
+    border-radius:20px;
+    font-size:12px;
+    color:var(--muted);
+    z-index:500;
+    text-align:center;
+    max-width:80%;
+  }
+  .legend{
+    position:absolute;
+    bottom:14px;
+    left:14px;
+    background:rgba(11,43,29,0.92);
+    padding:8px 12px;
+    border-radius:8px;
+    font-size:12px;
+    display:flex;
+    gap:14px;
+    z-index:500;
+    flex-wrap:wrap;
+  }
+  .legend span{display:flex;align-items:center;gap:6px;}
+  .footer-bar{
+    padding:10px 20px;
+    background:var(--forest);
+    border-top:1px solid rgba(244,241,230,0.12);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    padding:8px 15px;
+    border-radius:7px;
+    border:1px solid rgba(244,241,230,0.3);
+    background:transparent;
+    color:var(--cream);
+    cursor:pointer;
+  }
+  .btn:hover{background:rgba(244,241,230,0.1);border-color:var(--cream);}
+  .btn-primary{
+    background:var(--line);
+    color:#2A1F00;
+    border-color:var(--line);
+  }
+  .btn-primary:hover{background:#FFD87A;}
+  .active-hole-label{
+    font-size:12px;
+    color:var(--muted);
+  }
+  .active-hole-label strong{color:var(--cream);font-family:'Space Grotesk',sans-serif;}
+  .credit-bar{
+    padding:6px 20px;
+    background:var(--forest-dark);
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    border-top:1px solid rgba(244,241,230,0.08);
+  }
+  .locate-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 20px;
+    background:var(--forest);
+    border-bottom:1px solid rgba(244,241,230,0.12);
+    flex-wrap:wrap;
+  }
+  .locate-bar input{
+    flex:1;
+    min-width:220px;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    padding:8px 12px;
+    border-radius:7px;
+    border:1px solid rgba(244,241,230,0.25);
+    background:rgba(244,241,230,0.06);
+    color:var(--cream);
+  }
+  .locate-bar input:focus{outline:none;border-color:var(--line);}
+  .search-status{
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  /* --- Botón flotante para abrir/cerrar el panel en pantallas chicas --- */
+  .sidebar-toggle{
+    display:none;
+    position:absolute;
+    bottom:16px;
+    right:16px;
+    z-index:900;
+    background:var(--line);
+    color:#2A1F00;
+    border:none;
+    border-radius:24px;
+    padding:12px 18px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.4);
+  }
+  .sidebar-backdrop{
+    display:none;
+  }
+
+  /* --- Tablets y celulares (hasta 860px de ancho) --- */
+  @media (max-width: 860px){
+    header{ padding:10px 14px; }
+    header h1{ font-size:16px; }
+    .active-hole-label{ font-size:11px; }
+
+    .locate-bar{
+      padding:8px 12px;
+      flex-direction:column;
+      align-items:stretch;
+    }
+    .locate-bar input, .locate-bar .btn{
+      width:100%;
+      min-width:0;
+      padding:11px 12px;
+      font-size:15px;
+    }
+
+    .layout{ overflow:hidden; }
+
+    .sidebar{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      top:auto;
+      width:auto;
+      height:78%;
+      max-height:78%;
+      border-right:none;
+      border-top:1px solid rgba(244,241,230,0.2);
+      border-radius:18px 18px 0 0;
+      box-shadow:0 -6px 24px rgba(0,0,0,0.45);
+      transform:translateY(100%);
+      transition:transform 0.25s ease;
+      z-index:950;
+    }
+    .sidebar.open{ transform:translateY(0); }
+
+    .sidebar-toggle{ display:block; }
+    .sidebar.open ~ .sidebar-toggle,
+    .sidebar-toggle.hidden{ display:none; }
+
+    .sidebar-backdrop.open{
+      display:block;
+      position:absolute;
+      inset:0;
+      background:rgba(0,0,0,0.35);
+      z-index:940;
+    }
+
+    .par-select{ padding:8px 8px; font-size:13px; }
+    .hole-row{ padding:12px; }
+
+    .footer-bar{
+      flex-direction:column;
+      align-items:stretch;
+      gap:10px;
+      padding:10px 14px;
+    }
+    .footer-bar .btn{
+      width:100%;
+      padding:12px 14px;
+      font-size:14px;
+    }
+    .footer-bar > div[style]{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      width:100%;
+    }
+
+    .hint{
+      font-size:11px;
+      max-width:92%;
+      top:8px;
+    }
+    .legend{
+      font-size:11px;
+      gap:8px;
+      padding:6px 9px;
+      bottom:10px;
+      left:10px;
+      right:10px;
+      justify-content:space-between;
+    }
+
+    .credit-bar{ font-size:10px; padding:5px 12px; }
+  }
+
+  /* Marcadores un poco más grandes para dedos en pantallas táctiles */
+  @media (pointer: coarse){
+    .leaflet-marker-icon{ touch-action:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Diseñador de Cancha Junior</h1>
+    <div class="sub">Federación Entrerriana de Golf — Águila &amp; Birdie</div>
+  </div>
+  <div class="active-hole-label" id="activeHoleLabel">Editando: <strong>Hoyo 1</strong></div>
+</header>
+
+<div class="locate-bar">
+  <input type="text" id="searchInput" placeholder="Buscar dirección o club (ej: Golf Club Social La Paz, Entre Ríos)">
+  <button class="btn" id="searchBtn">Buscar</button>
+  <button class="btn btn-primary" id="relocateBtn">Traer los 9 hoyos al centro del mapa</button>
+  <button class="btn" id="loadCsvBtn">Cargar cancha desde CSV</button>
+  <input type="file" id="csvFileInput" accept=".csv" style="display:none;">
+  <span id="searchStatus" class="search-status"></span>
+</div>
+
+<div class="layout">
+  <div class="sidebar" id="sidebarPanel">
+
+    <div class="sidebar-section">
+      <h2>Resumen del recorrido</h2>
+      <div class="summary-row"><span class="label">Par 3 asignados</span><span class="value" id="countPar3">0 / 2</span></div>
+      <div class="summary-row"><span class="label">Par 4 asignados</span><span class="value" id="countPar4">0 / 5</span></div>
+      <div class="summary-row"><span class="label">Par 5 asignados</span><span class="value" id="countPar5">0 / 2</span></div>
+      <div class="summary-row"><span class="label">Total Águila</span><span class="value" id="totalAguila">0 yd <span style="color:var(--muted);font-weight:400;">(meta ~2200)</span></span></div>
+      <div class="summary-row"><span class="label">Total Birdie</span><span class="value" id="totalBirdie">0 yd <span style="color:var(--muted);font-weight:400;">(meta ~1600)</span></span></div>
+    </div>
+
+    <div class="sidebar-section">
+      <h2>Advertencias</h2>
+      <div id="warningsBox"><div class="no-warnings">Todo dentro de los rangos AAG por ahora.</div></div>
+    </div>
+
+    <div class="sidebar-section" style="flex:1;">
+      <h2>Hoyos (clic para editar)</h2>
+      <div id="holesList"></div>
+    </div>
+
+  </div>
+
+  <div class="map-wrap">
+    <div id="map"></div>
+    <div class="hint">Arrastrá los pines del hoyo activo. Los demás hoyos se ven atenuados de referencia.</div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--aguila)"></span>Tee Águila</span>
+      <span><span class="dot" style="background:var(--birdie)"></span>Tee Birdie</span>
+      <span><span class="dot" style="background:var(--green-pin)"></span>Green</span>
+    </div>
+  </div>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <button class="sidebar-toggle" id="sidebarToggle">☰ Hoyos y resumen</button>
+</div>
+
+<div class="footer-bar">
+  <div class="active-hole-label" id="footerHint">Seleccioná un par para el hoyo activo y ajustá los pines sobre la imagen satelital.</div>
+  <div style="display:flex;gap:10px;">
+    <button class="btn" id="exportCsv">Descargar CSV (planilla FEG)</button>
+    <button class="btn" id="copyCsv">Copiar CSV</button>
+    <button class="btn btn-primary" id="exportGeoJson">Descargar GeoJSON (puntos + líneas)</button>
+  </div>
+</div>
+
+<div class="credit-bar">Diseñado por Enrique Ignacio Fernández para la Federación Entrerriana de Golf — 2026</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  const CENTER = [-30.739395983185013, -59.59130900000001];
+  const N_HOLES = 9;
+
+  const RANGES = {
+    aguila: { 3:[90,120], 4:[220,300], 5:[300,380] },
+    birdie: { 3:[60,100], 4:[150,200], 5:[230,300] }
+  };
+  const REQUIRED_COUNTS = { 3:2, 4:5, 5:2 };
+  const TARGET_TOTAL = { aguila:2200, birdie:1600 };
+
+  // --- Map setup ---
+  const map = L.map('map', { zoomControl: true }).setView(CENTER, 17);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 20,
+    attribution: 'Imágenes © Esri, Maxar, Earthstar Geographics'
+  }).addTo(map);
+
+  function metersToYards(m){ return m * 1.09361; }
+  function haversine(a, b){
+    const R = 6371000;
+    const toRad = d => d * Math.PI/180;
+    const dLat = toRad(b[0]-a[0]);
+    const dLng = toRad(b[1]-a[1]);
+    const lat1 = toRad(a[0]);
+    const lat2 = toRad(b[0]);
+    const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+
+  // --- Data model: 9 holes laid out along a rough line by default ---
+  const holes = [];
+  for(let i=0;i<N_HOLES;i++){
+    const baseLat = CENTER[0] + (i - N_HOLES/2) * 0.0011;
+    const baseLng = CENTER[1] + ((i % 2 === 0) ? 0.0009 : -0.0009);
+    holes.push({
+      par: null,
+      green: [baseLat + 0.00075, baseLng + 0.0006],
+      eagleTee: [baseLat, baseLng],
+      birdieTee: [baseLat + 0.0003, baseLng + 0.00025],
+      eagleDist: 0,
+      birdieDist: 0
+    });
+  }
+
+  let activeIndex = 0;
+
+  function recalcHole(i){
+    const h = holes[i];
+    h.eagleDist = Math.round(metersToYards(haversine(h.eagleTee, h.green)));
+    h.birdieDist = Math.round(metersToYards(haversine(h.birdieTee, h.green)));
+  }
+  holes.forEach((_, i) => recalcHole(i));
+
+  function rangeCheck(cat, par, dist){
+    if(!par) return null;
+    const range = RANGES[cat][par];
+    if(!range) return null;
+    return dist >= range[0] && dist <= range[1];
+  }
+
+  function makeDivIcon(color, glyph, big){
+    const size = big ? 26 : 16;
+    return L.divIcon({
+      className: '',
+      html: `<div style="
+        width:${size}px;height:${size}px;border-radius:50%;
+        background:${color};
+        opacity:${big ? 1 : 0.55};
+        border:2px solid rgba(244,241,230,${big ? 0.9 : 0.5});
+        box-shadow:0 2px 6px rgba(0,0,0,0.4);
+        display:flex;align-items:center;justify-content:center;
+        font-family:'Space Grotesk',sans-serif;font-size:${big?12:9}px;font-weight:700;color:#fff;">
+        ${glyph}
+      </div>`,
+      iconSize: [size,size],
+      iconAnchor: [size/2,size/2]
+    });
+  }
+
+  // Layers holders
+  let activeMarkers = {};
+  let activeLines = {};
+  let inactiveLayer = L.layerGroup().addTo(map);
+
+  function clearActiveLayers(){
+    Object.values(activeMarkers).forEach(m => map.removeLayer(m));
+    Object.values(activeLines).forEach(l => map.removeLayer(l));
+    activeMarkers = {};
+    activeLines = {};
+  }
+
+  function drawInactiveHoles(){
+    inactiveLayer.clearLayers();
+    holes.forEach((h, i) => {
+      if(i === activeIndex) return;
+      const greenM = L.marker(h.green, { icon: makeDivIcon(getVar('--green-pin'), '' + (i+1), false), interactive:false });
+      const eagleM = L.marker(h.eagleTee, { icon: makeDivIcon(getVar('--aguila'), '', false), interactive:false });
+      const birdieM = L.marker(h.birdieTee, { icon: makeDivIcon(getVar('--birdie'), '', false), interactive:false });
+      inactiveLayer.addLayer(greenM);
+      inactiveLayer.addLayer(eagleM);
+      inactiveLayer.addLayer(birdieM);
+    });
+  }
+
+  function getVar(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function drawActiveHole(){
+    clearActiveLayers();
+    const h = holes[activeIndex];
+
+    activeMarkers.green = L.marker(h.green, { draggable:true, icon: makeDivIcon(getVar('--green-pin'), 'G', true) }).addTo(map);
+    activeMarkers.eagle = L.marker(h.eagleTee, { draggable:true, icon: makeDivIcon(getVar('--aguila'), 'A', true) }).addTo(map);
+    activeMarkers.birdie = L.marker(h.birdieTee, { draggable:true, icon: makeDivIcon(getVar('--birdie'), 'B', true) }).addTo(map);
+
+    activeLines.eagle = L.polyline([h.eagleTee, h.green], { color: getVar('--aguila'), weight:4, opacity:0.9 }).addTo(map);
+    activeLines.birdie = L.polyline([h.birdieTee, h.green], { color: getVar('--birdie'), weight:4, opacity:0.9, dashArray:'2 8' }).addTo(map);
+
+    activeMarkers.green.on('drag', onActiveDrag);
+    activeMarkers.eagle.on('drag', onActiveDrag);
+    activeMarkers.birdie.on('drag', onActiveDrag);
+
+    drawInactiveHoles();
+    document.getElementById('activeHoleLabel').innerHTML = `Editando: <strong>Hoyo ${activeIndex+1}</strong>`;
+  }
+
+  function onActiveDrag(){
+    const h = holes[activeIndex];
+    h.green = [activeMarkers.green.getLatLng().lat, activeMarkers.green.getLatLng().lng];
+    h.eagleTee = [activeMarkers.eagle.getLatLng().lat, activeMarkers.eagle.getLatLng().lng];
+    h.birdieTee = [activeMarkers.birdie.getLatLng().lat, activeMarkers.birdie.getLatLng().lng];
+    activeLines.eagle.setLatLngs([h.eagleTee, h.green]);
+    activeLines.birdie.setLatLngs([h.birdieTee, h.green]);
+    recalcHole(activeIndex);
+    renderAll();
+  }
+
+  function selectHole(i){
+    activeIndex = i;
+    drawActiveHole();
+    renderAll();
+    closeMobileSidebar();
+  }
+
+  // --- Rendering sidebar + summary + warnings ---
+  function renderHolesList(){
+    const container = document.getElementById('holesList');
+    container.innerHTML = '';
+    holes.forEach((h, i) => {
+      const row = document.createElement('div');
+      row.className = 'hole-row' + (i === activeIndex ? ' active' : '');
+
+      const eagleOk = rangeCheck('aguila', h.par, h.eagleDist);
+      const birdieOk = rangeCheck('birdie', h.par, h.birdieDist);
+
+      row.innerHTML = `
+        <div class="hole-row-top">
+          <span class="hole-name">Hoyo ${i+1}</span>
+          <select class="par-select" data-idx="${i}">
+            <option value="">Par —</option>
+            <option value="3" ${h.par===3?'selected':''}>Par 3</option>
+            <option value="4" ${h.par===4?'selected':''}>Par 4</option>
+            <option value="5" ${h.par===5?'selected':''}>Par 5</option>
+          </select>
+        </div>
+        <div class="dist-line">
+          <span class="cat"><span class="dot" style="background:var(--aguila)"></span>Águila</span>
+          <span class="dist-value ${eagleOk===null?'dist-neutral':(eagleOk?'dist-ok':'dist-warn')}">${h.eagleDist} yd</span>
+        </div>
+        <div class="dist-line">
+          <span class="cat"><span class="dot" style="background:var(--birdie)"></span>Birdie</span>
+          <span class="dist-value ${birdieOk===null?'dist-neutral':(birdieOk?'dist-ok':'dist-warn')}">${h.birdieDist} yd</span>
+        </div>
+      `;
+      row.addEventListener('click', (e) => {
+        if(e.target.tagName.toLowerCase() === 'select') return;
+        selectHole(i);
+      });
+      row.querySelector('.par-select').addEventListener('change', (e) => {
+        holes[i].par = e.target.value ? parseInt(e.target.value) : null;
+        renderAll();
+      });
+      row.querySelector('.par-select').addEventListener('click', (e) => e.stopPropagation());
+      container.appendChild(row);
+    });
+  }
+
+  function renderSummary(){
+    const parCounts = {3:0,4:0,5:0};
+    holes.forEach(h => { if(h.par) parCounts[h.par]++; });
+
+    function pillHtml(count, required){
+      const ok = count === required;
+      return `${count} / ${required}`;
+    }
+    document.getElementById('countPar3').textContent = pillHtml(parCounts[3], REQUIRED_COUNTS[3]);
+    document.getElementById('countPar4').textContent = pillHtml(parCounts[4], REQUIRED_COUNTS[4]);
+    document.getElementById('countPar5').textContent = pillHtml(parCounts[5], REQUIRED_COUNTS[5]);
+
+    [3,4,5].forEach(p => {
+      const el = document.getElementById('countPar'+p);
+      el.style.color = parCounts[p] === REQUIRED_COUNTS[p] ? 'var(--ok)' : 'var(--warn)';
+    });
+
+    const totalAguila = holes.reduce((s,h) => s + h.eagleDist, 0);
+    const totalBirdie = holes.reduce((s,h) => s + h.birdieDist, 0);
+    document.getElementById('totalAguila').innerHTML = `${totalAguila} yd <span style="color:var(--muted);font-weight:400;">(meta ~${TARGET_TOTAL.aguila})</span>`;
+    document.getElementById('totalBirdie').innerHTML = `${totalBirdie} yd <span style="color:var(--muted);font-weight:400;">(meta ~${TARGET_TOTAL.birdie})</span>`;
+
+    return { parCounts, totalAguila, totalBirdie };
+  }
+
+  function renderWarnings(summary){
+    const warnings = [];
+
+    [3,4,5].forEach(p => {
+      if(summary.parCounts[p] !== REQUIRED_COUNTS[p]){
+        warnings.push(`Se requieren ${REQUIRED_COUNTS[p]} hoyos Par ${p} y hay ${summary.parCounts[p]} asignados.`);
+      }
+    });
+
+    holes.forEach((h, i) => {
+      if(!h.par) return;
+      const eagleOk = rangeCheck('aguila', h.par, h.eagleDist);
+      const birdieOk = rangeCheck('birdie', h.par, h.birdieDist);
+      if(eagleOk === false){
+        const r = RANGES.aguila[h.par];
+        warnings.push(`Hoyo ${i+1} (Par ${h.par}) — Águila ${h.eagleDist} yd, fuera del rango ${r[0]}-${r[1]} yd.`);
+      }
+      if(birdieOk === false){
+        const r = RANGES.birdie[h.par];
+        warnings.push(`Hoyo ${i+1} (Par ${h.par}) — Birdie ${h.birdieDist} yd, fuera del rango ${r[0]}-${r[1]} yd.`);
+      }
+    });
+
+    const deltaAguila = Math.abs(summary.totalAguila - TARGET_TOTAL.aguila);
+    if(deltaAguila > TARGET_TOTAL.aguila * 0.08){
+      warnings.push(`Total Águila (${summary.totalAguila} yd) se aleja bastante de la meta aproximada de ${TARGET_TOTAL.aguila} yd.`);
+    }
+    const deltaBirdie = Math.abs(summary.totalBirdie - TARGET_TOTAL.birdie);
+    if(deltaBirdie > TARGET_TOTAL.birdie * 0.08){
+      warnings.push(`Total Birdie (${summary.totalBirdie} yd) se aleja bastante de la meta aproximada de ${TARGET_TOTAL.birdie} yd.`);
+    }
+
+    const box = document.getElementById('warningsBox');
+    if(warnings.length === 0){
+      box.innerHTML = '<div class="no-warnings">Todo dentro de los rangos AAG por ahora.</div>';
+    } else {
+      box.innerHTML = '<div class="warnings-list">' + warnings.map(w => `<div class="warning-item">${w}</div>`).join('') + '</div>';
+    }
+  }
+
+  function renderAll(){
+    renderHolesList();
+    const summary = renderSummary();
+    renderWarnings(summary);
+  }
+
+  // --- CSV export (matches plantilla-canchas-FEG.xlsx columns) ---
+  function buildCsv(){
+    const headers = ['Hoyo','Categoria','Dist_yardas','Par','Descripcion','Latitud','Longitud'];
+    const rows = [headers];
+    holes.forEach((h, i) => {
+      const holeNum = i+1;
+      const par = h.par || '';
+      rows.push([holeNum, 'Green', '', par, `Hoyo ${holeNum} · Par ${par}`, h.green[0].toFixed(6), h.green[1].toFixed(6)]);
+      rows.push([holeNum, 'Águila', h.eagleDist, '', `Hoyo ${holeNum} · Par ${par} · Águila`, h.eagleTee[0].toFixed(6), h.eagleTee[1].toFixed(6)]);
+      rows.push([holeNum, 'Birdie', h.birdieDist, '', `Hoyo ${holeNum} · Par ${par} · Birdie`, h.birdieTee[0].toFixed(6), h.birdieTee[1].toFixed(6)]);
+    });
+    return rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  }
+
+  document.getElementById('exportCsv').addEventListener('click', () => {
+    const csv = buildCsv();
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cancha-junior.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // --- GeoJSON export: points (tees/greens) + lines (tee-to-green per category) ---
+  function buildGeoJson(){
+    const features = [];
+
+    holes.forEach((h, i) => {
+      const holeNum = i + 1;
+      const par = h.par || '';
+
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [h.green[1], h.green[0]] },
+        properties: {
+          Hoyo: holeNum,
+          Categoria: 'Green',
+          Dist_yardas: null,
+          Par: par,
+          Descripcion: `Hoyo ${holeNum} · Par ${par}`
+        }
+      });
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [h.eagleTee[1], h.eagleTee[0]] },
+        properties: {
+          Hoyo: holeNum,
+          Categoria: 'Águila',
+          Dist_yardas: h.eagleDist,
+          Par: '',
+          Descripcion: `Hoyo ${holeNum} · Par ${par} · Águila`
+        }
+      });
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [h.birdieTee[1], h.birdieTee[0]] },
+        properties: {
+          Hoyo: holeNum,
+          Categoria: 'Birdie',
+          Dist_yardas: h.birdieDist,
+          Par: '',
+          Descripcion: `Hoyo ${holeNum} · Par ${par} · Birdie`
+        }
+      });
+
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [h.eagleTee[1], h.eagleTee[0]],
+            [h.green[1], h.green[0]]
+          ]
+        },
+        properties: {
+          Hoyo: holeNum,
+          Categoria: 'Línea Águila',
+          Dist_yardas: h.eagleDist,
+          Par: par,
+          Descripcion: `Hoyo ${holeNum} · Águila · ${h.eagleDist} yd`
+        }
+      });
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [h.birdieTee[1], h.birdieTee[0]],
+            [h.green[1], h.green[0]]
+          ]
+        },
+        properties: {
+          Hoyo: holeNum,
+          Categoria: 'Línea Birdie',
+          Dist_yardas: h.birdieDist,
+          Par: par,
+          Descripcion: `Hoyo ${holeNum} · Birdie · ${h.birdieDist} yd`
+        }
+      });
+    });
+
+    return {
+      type: 'FeatureCollection',
+      properties: {
+        autor: 'Enrique Ignacio Fernández',
+        institucion: 'Federación Entrerriana de Golf',
+        anio: 2026
+      },
+      features
+    };
+  }
+
+  document.getElementById('exportGeoJson').addEventListener('click', () => {
+    const geojson = buildGeoJson();
+    const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/geo+json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cancha-junior.geojson';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('copyCsv').addEventListener('click', () => {
+    const csv = buildCsv();
+    navigator.clipboard.writeText(csv).then(() => {
+      const btn = document.getElementById('copyCsv');
+      const original = btn.textContent;
+      btn.textContent = 'Copiado ✓';
+      setTimeout(() => { btn.textContent = original; }, 1400);
+    });
+  });
+
+  // --- Buscar dirección (Nominatim / OpenStreetMap) ---
+  async function searchLocation(){
+    const query = document.getElementById('searchInput').value.trim();
+    const status = document.getElementById('searchStatus');
+    if(!query) return;
+    status.textContent = 'Buscando...';
+    try{
+      const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query);
+      const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
+      const data = await res.json();
+      if(data && data.length > 0){
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        map.setView([lat, lon], 17);
+        status.textContent = 'Encontrado: ' + data[0].display_name.split(',').slice(0,3).join(',');
+      } else {
+        status.textContent = 'No se encontró esa ubicación. Probá con más detalle.';
+      }
+    } catch(err){
+      status.textContent = 'Error al buscar. Revisá tu conexión.';
+    }
+  }
+
+  document.getElementById('searchBtn').addEventListener('click', searchLocation);
+  document.getElementById('searchInput').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){ e.preventDefault(); searchLocation(); }
+  });
+
+  // --- Reubicar los 9 hoyos alrededor del centro actual del mapa ---
+  function relocateAllHoles(){
+    const c = map.getCenter();
+    const newCenter = [c.lat, c.lng];
+    holes.forEach((h, i) => {
+      const baseLat = newCenter[0] + (i - N_HOLES/2) * 0.0011;
+      const baseLng = newCenter[1] + ((i % 2 === 0) ? 0.0009 : -0.0009);
+      h.green = [baseLat + 0.00075, baseLng + 0.0006];
+      h.eagleTee = [baseLat, baseLng];
+      h.birdieTee = [baseLat + 0.0003, baseLng + 0.00025];
+      recalcHole(i);
+    });
+    drawActiveHole();
+    renderAll();
+    document.getElementById('searchStatus').textContent = 'Los 9 hoyos se reubicaron en el centro del mapa.';
+  }
+
+  document.getElementById('relocateBtn').addEventListener('click', relocateAllHoles);
+
+  // --- Cargar cancha desde CSV (mismo formato que exporta esta herramienta) ---
+  function parseCsvLine(line){
+    // Parser simple que respeta comillas dobles y comas dentro de campos
+    const result = [];
+    let cur = '';
+    let inQuotes = false;
+    for(let i=0;i<line.length;i++){
+      const ch = line[i];
+      if(inQuotes){
+        if(ch === '"'){
+          if(line[i+1] === '"'){ cur += '"'; i++; }
+          else { inQuotes = false; }
+        } else {
+          cur += ch;
+        }
+      } else {
+        if(ch === '"'){ inQuotes = true; }
+        else if(ch === ','){ result.push(cur); cur = ''; }
+        else { cur += ch; }
+      }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  function loadCsvText(text){
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+    if(lines.length < 2){
+      document.getElementById('searchStatus').textContent = 'El CSV está vacío o no tiene filas de datos.';
+      return;
+    }
+    const headers = parseCsvLine(lines[0]).map(h => h.trim());
+    const idx = {
+      hoyo: headers.indexOf('Hoyo'),
+      categoria: headers.indexOf('Categoria'),
+      dist: headers.indexOf('Dist_yardas'),
+      par: headers.indexOf('Par'),
+      lat: headers.indexOf('Latitud'),
+      lng: headers.indexOf('Longitud')
+    };
+    if(idx.hoyo === -1 || idx.categoria === -1 || idx.lat === -1 || idx.lng === -1){
+      document.getElementById('searchStatus').textContent = 'El CSV no tiene las columnas esperadas (Hoyo, Categoria, Latitud, Longitud).';
+      return;
+    }
+
+    // Reiniciar los 9 hoyos antes de cargar
+    const loaded = {};
+    for(let i=1;i<=N_HOLES;i++){ loaded[i] = { par: null }; }
+
+    for(let r=1;r<lines.length;r++){
+      const cols = parseCsvLine(lines[r]);
+      const hoyoNum = parseInt(cols[idx.hoyo]);
+      if(!hoyoNum || hoyoNum < 1 || hoyoNum > N_HOLES) continue;
+      const categoria = (cols[idx.categoria] || '').trim();
+      const lat = parseFloat(cols[idx.lat]);
+      const lng = parseFloat(cols[idx.lng]);
+      if(isNaN(lat) || isNaN(lng)) continue;
+
+      if(!loaded[hoyoNum]) loaded[hoyoNum] = { par: null };
+
+      if(categoria === 'Green'){
+        loaded[hoyoNum].green = [lat, lng];
+        const parVal = idx.par !== -1 ? parseInt(cols[idx.par]) : null;
+        loaded[hoyoNum].par = parVal || null;
+      } else if(categoria === 'Águila' || categoria === 'Aguila'){
+        loaded[hoyoNum].eagleTee = [lat, lng];
+      } else if(categoria === 'Birdie'){
+        loaded[hoyoNum].birdieTee = [lat, lng];
+      }
+      // Las filas "Línea Águila" / "Línea Birdie" (si vinieran de un GeoJSON exportado como CSV) se ignoran acá:
+      // los tees y greens ya traen toda la posición necesaria.
+    }
+
+    let loadedCount = 0;
+    for(let i=0;i<N_HOLES;i++){
+      const hoyoNum = i+1;
+      const src = loaded[hoyoNum];
+      if(!src) continue;
+      if(src.green) holes[i].green = src.green;
+      if(src.eagleTee) holes[i].eagleTee = src.eagleTee;
+      if(src.birdieTee) holes[i].birdieTee = src.birdieTee;
+      holes[i].par = src.par || null;
+      recalcHole(i);
+      if(src.green || src.eagleTee || src.birdieTee) loadedCount++;
+    }
+
+    activeIndex = 0;
+    if(holes[0] && holes[0].green){
+      map.setView(holes[0].green, 17);
+    }
+    drawActiveHole();
+    renderAll();
+    document.getElementById('searchStatus').textContent = `Cancha cargada: ${loadedCount} de ${N_HOLES} hoyos con datos.`;
+  }
+
+  document.getElementById('loadCsvBtn').addEventListener('click', () => {
+    document.getElementById('csvFileInput').click();
+  });
+
+  document.getElementById('csvFileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => loadCsvText(ev.target.result);
+    reader.onerror = () => {
+      document.getElementById('searchStatus').textContent = 'No se pudo leer el archivo.';
+    };
+    reader.readAsText(file, 'UTF-8');
+    e.target.value = '';
+  });
+
+
+  // --- Panel deslizable para celulares/tablets ---
+  const sidebarPanel = document.getElementById('sidebarPanel');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  const sidebarToggle = document.getElementById('sidebarToggle');
+
+  function openMobileSidebar(){
+    sidebarPanel.classList.add('open');
+    sidebarBackdrop.classList.add('open');
+    sidebarToggle.classList.add('hidden');
+  }
+  function closeMobileSidebar(){
+    sidebarPanel.classList.remove('open');
+    sidebarBackdrop.classList.remove('open');
+    sidebarToggle.classList.remove('hidden');
+    setTimeout(() => map.invalidateSize(), 260);
+  }
+  sidebarToggle.addEventListener('click', openMobileSidebar);
+  sidebarBackdrop.addEventListener('click', closeMobileSidebar);
+
+  // El mapa necesita recalcular su tamaño si el navegador rota o cambia de tamaño
+  window.addEventListener('resize', () => map.invalidateSize());
+
+  drawActiveHole();
+  renderAll();
+</script>
+</body>
+</html>
