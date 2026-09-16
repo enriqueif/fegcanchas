@@ -25,12 +25,17 @@
     --ok-bg:rgba(111,207,151,0.1);
   }
   *{box-sizing:border-box;}
+  :root{
+    --app-height: 100vh;
+  }
   body{
     margin:0;
     font-family:'Inter',sans-serif;
     background:var(--forest-dark);
     color:var(--cream);
     height:100vh;
+    height:100dvh;
+    height:var(--app-height);
     display:flex;
     flex-direction:column;
     overflow:hidden;
@@ -485,6 +490,14 @@
   const TARGET_TOTAL = { aguila:2200, birdie:1600 };
 
   // --- Map setup ---
+  // --- Corrige el bug de 100vh en navegadores móviles: usamos la altura real del viewport ---
+  function setAppHeight(){
+    document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+  }
+  setAppHeight();
+  window.addEventListener('resize', setAppHeight);
+  window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 250));
+
   const map = L.map('map', { zoomControl: true }).setView(CENTER, 17);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 20,
@@ -1053,6 +1066,7 @@
 
   // El mapa necesita recalcular su tamaño si el navegador rota o cambia de tamaño
   window.addEventListener('resize', () => map.invalidateSize());
+  window.addEventListener('orientationchange', () => setTimeout(() => map.invalidateSize(), 300));
 
   // --- En mobile, mover la barra de búsqueda y la de exportar dentro del panel deslizable,
   //     para que en pantalla solo quede el mapa y el header, maximizando la vista satelital ---
@@ -1094,6 +1108,10 @@
 
   drawActiveHole();
   renderAll();
+
+  // Recálculo de seguridad al terminar de asentarse la página (fuentes, barra de direcciones, etc.)
+  setTimeout(() => { setAppHeight(); map.invalidateSize(); }, 300);
+  window.addEventListener('load', () => { setAppHeight(); map.invalidateSize(); });
 </script>
 </body>
 </html>
