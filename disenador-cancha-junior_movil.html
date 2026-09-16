@@ -293,8 +293,9 @@
 
   /* --- Tablets y celulares (hasta 860px de ancho) --- */
   @media (max-width: 860px){
-    header{ padding:10px 14px; }
-    header h1{ font-size:16px; }
+    header{ padding:8px 12px; }
+    header h1{ font-size:14px; }
+    header .sub{ display:none; }
     .active-hole-label{ font-size:11px; }
 
     .locate-bar{
@@ -395,7 +396,8 @@
   <div class="active-hole-label" id="activeHoleLabel">Editando: <strong>Hoyo 1</strong></div>
 </header>
 
-<div class="locate-bar">
+<div id="locateBarAnchor" style="display:none;"></div>
+<div class="locate-bar" id="locateBar">
   <input type="text" id="searchInput" placeholder="Buscar dirección o club (ej: Golf Club Social La Paz, Entre Ríos)">
   <button class="btn" id="searchBtn">Buscar</button>
   <button class="btn btn-primary" id="relocateBtn">Traer los 9 hoyos al centro del mapa</button>
@@ -442,7 +444,8 @@
   <button class="sidebar-toggle" id="sidebarToggle">☰ Hoyos y resumen</button>
 </div>
 
-<div class="footer-bar">
+<div id="footerBarAnchor" style="display:none;"></div>
+<div class="footer-bar" id="footerBar">
   <div class="active-hole-label" id="footerHint">Seleccioná un par para el hoyo activo y ajustá los pines sobre la imagen satelital.</div>
   <div style="display:flex;gap:10px;">
     <button class="btn" id="exportCsv">Descargar CSV (planilla FEG)</button>
