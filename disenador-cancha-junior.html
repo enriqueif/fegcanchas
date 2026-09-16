@@ -779,6 +779,8 @@
     document.getElementById('searchStatus').textContent = 'Los 9 hoyos se reubicaron en el centro del mapa.';
   }
 
+  document.getElementById('relocateBtn').addEventListener('click', relocateAllHoles);
+
   // --- Cargar cancha desde CSV (mismo formato que exporta esta herramienta) ---
   function parseCsvLine(line){
     // Parser simple que respeta comillas dobles y comas dentro de campos
