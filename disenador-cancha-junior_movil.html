@@ -274,17 +274,17 @@
   .sidebar-toggle{
     display:none;
     position:absolute;
-    bottom:16px;
-    right:16px;
+    bottom:12px;
+    right:12px;
     z-index:900;
     background:var(--line);
     color:#2A1F00;
     border:none;
-    border-radius:24px;
-    padding:12px 18px;
+    border-radius:20px;
+    padding:8px 14px;
     font-family:'Space Grotesk',sans-serif;
     font-weight:700;
-    font-size:14px;
+    font-size:12px;
     box-shadow:0 4px 14px rgba(0,0,0,0.4);
   }
   .sidebar-backdrop{
@@ -293,10 +293,10 @@
 
   /* --- Tablets y celulares (hasta 860px de ancho) --- */
   @media (max-width: 860px){
-    header{ padding:8px 12px; }
-    header h1{ font-size:14px; }
+    header{ padding:6px 12px; }
+    header h1{ font-size:13px; }
     header .sub{ display:none; }
-    .active-hole-label{ font-size:11px; }
+    #activeHoleLabel{ display:none; }
 
     .locate-bar{
       padding:8px 12px;
@@ -378,6 +378,21 @@
     }
 
     .credit-bar{ font-size:10px; padding:5px 12px; }
+
+    #locateBar.in-sidebar, #footerBar.in-sidebar{
+      border:none;
+      background:transparent;
+      padding:16px 18px;
+      border-top:1px solid rgba(244,241,230,0.1);
+    }
+    #footerBar.in-sidebar > div[style]{
+      flex-direction:column;
+    }
+    #creditBar.in-sidebar{
+      border-top:1px solid rgba(244,241,230,0.1);
+      background:transparent;
+      padding:10px 18px 16px;
+    }
   }
 
   /* Marcadores un poco más grandes para dedos en pantallas táctiles */
@@ -454,7 +469,8 @@
   </div>
 </div>
 
-<div class="credit-bar">Diseñado por Enrique Ignacio Fernández para la Federación Entrerriana de Golf — 2026</div>
+<div id="creditBarAnchor" style="display:none;"></div>
+<div class="credit-bar" id="creditBar">Diseñado por Enrique Ignacio Fernández para la Federación Entrerriana de Golf — 2026</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
@@ -583,6 +599,7 @@
 
     drawInactiveHoles();
     document.getElementById('activeHoleLabel').innerHTML = `Editando: <strong>Hoyo ${activeIndex+1}</strong>`;
+    if(typeof updateToggleLabel === 'function') updateToggleLabel();
   }
 
   function onActiveDrag(){
@@ -1036,6 +1053,44 @@
 
   // El mapa necesita recalcular su tamaño si el navegador rota o cambia de tamaño
   window.addEventListener('resize', () => map.invalidateSize());
+
+  // --- En mobile, mover la barra de búsqueda y la de exportar dentro del panel deslizable,
+  //     para que en pantalla solo quede el mapa y el header, maximizando la vista satelital ---
+  const locateBar = document.getElementById('locateBar');
+  const footerBar = document.getElementById('footerBar');
+  const creditBar = document.getElementById('creditBar');
+  const locateBarAnchor = document.getElementById('locateBarAnchor');
+  const footerBarAnchor = document.getElementById('footerBarAnchor');
+  const creditBarAnchor = document.getElementById('creditBarAnchor');
+  let barsInSidebar = false;
+
+  function layoutBarsForScreen(){
+    const isMobile = window.innerWidth <= 860;
+    if(isMobile && !barsInSidebar){
+      sidebarPanel.appendChild(locateBar);
+      sidebarPanel.appendChild(footerBar);
+      sidebarPanel.appendChild(creditBar);
+      locateBar.classList.add('in-sidebar');
+      footerBar.classList.add('in-sidebar');
+      creditBar.classList.add('in-sidebar');
+      barsInSidebar = true;
+    } else if(!isMobile && barsInSidebar){
+      locateBarAnchor.parentNode.insertBefore(locateBar, locateBarAnchor.nextSibling);
+      footerBarAnchor.parentNode.insertBefore(footerBar, footerBarAnchor.nextSibling);
+      creditBarAnchor.parentNode.insertBefore(creditBar, creditBarAnchor.nextSibling);
+      locateBar.classList.remove('in-sidebar');
+      footerBar.classList.remove('in-sidebar');
+      creditBar.classList.remove('in-sidebar');
+      barsInSidebar = false;
+    }
+    updateToggleLabel();
+  }
+  layoutBarsForScreen();
+  window.addEventListener('resize', layoutBarsForScreen);
+
+  function updateToggleLabel(){
+    sidebarToggle.textContent = `☰ Hoyo ${activeIndex + 1}`;
+  }
 
   drawActiveHole();
   renderAll();
