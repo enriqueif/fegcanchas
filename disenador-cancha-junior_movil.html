@@ -208,6 +208,50 @@
     flex-wrap:wrap;
   }
   .legend span{display:flex;align-items:center;gap:6px;}
+  .live-card{
+    position:absolute;
+    top:12px;
+    right:12px;
+    z-index:600;
+    background:rgba(11,43,29,0.94);
+    border:1px solid rgba(255,200,87,0.4);
+    border-radius:10px;
+    padding:10px 14px;
+    min-width:150px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.35);
+  }
+  .live-card .lc-hole{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    color:var(--cream);
+    margin-bottom:6px;
+  }
+  .live-card .lc-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    font-size:12px;
+    padding:2px 0;
+  }
+  .live-card .lc-row .lc-cat{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    color:var(--muted);
+  }
+  .live-card .lc-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .live-card .lc-val{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:13px;
+  }
+  .live-card .lc-range{
+    font-size:10px;
+    color:var(--muted);
+    margin-top:6px;
+  }
   .footer-bar{
     padding:10px 20px;
     background:var(--forest);
@@ -369,9 +413,19 @@
 
     .hint{
       font-size:11px;
-      max-width:92%;
+      max-width:60%;
       top:8px;
     }
+    .live-card{
+      top:8px;
+      right:8px;
+      padding:7px 10px;
+      min-width:120px;
+    }
+    .live-card .lc-hole{ font-size:11px; margin-bottom:4px; }
+    .live-card .lc-row{ font-size:11px; }
+    .live-card .lc-val{ font-size:12px; }
+    .live-card .lc-range{ font-size:9px; }
     .legend{
       font-size:11px;
       gap:8px;
@@ -453,6 +507,7 @@
   <div class="map-wrap">
     <div id="map"></div>
     <div class="hint">Arrastrá los pines del hoyo activo. Los demás hoyos se ven atenuados de referencia.</div>
+    <div class="live-card" id="liveCard"></div>
     <div class="legend">
       <span><span class="dot" style="background:var(--aguila)"></span>Tee Águila</span>
       <span><span class="dot" style="background:var(--birdie)"></span>Tee Birdie</span>
@@ -741,10 +796,39 @@
     }
   }
 
+  function renderLiveCard(){
+    const h = holes[activeIndex];
+    const card = document.getElementById('liveCard');
+    const eagleOk = rangeCheck('aguila', h.par, h.eagleDist);
+    const birdieOk = rangeCheck('birdie', h.par, h.birdieDist);
+    const parLabel = h.par ? `Par ${h.par}` : 'Sin par asignado';
+
+    let rangeHtml = '';
+    if(h.par){
+      const ra = RANGES.aguila[h.par];
+      const rb = RANGES.birdie[h.par];
+      rangeHtml = `<div class="lc-range">Rango AAG — Águila ${ra[0]}-${ra[1]} yd · Birdie ${rb[0]}-${rb[1]} yd</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="lc-hole">Hoyo ${activeIndex + 1} · ${parLabel}</div>
+      <div class="lc-row">
+        <span class="lc-cat"><span class="lc-dot" style="background:var(--aguila)"></span>Águila</span>
+        <span class="lc-val ${eagleOk===null?'':(eagleOk?'dist-ok':'dist-warn')}">${h.eagleDist} yd</span>
+      </div>
+      <div class="lc-row">
+        <span class="lc-cat"><span class="lc-dot" style="background:var(--birdie)"></span>Birdie</span>
+        <span class="lc-val ${birdieOk===null?'':(birdieOk?'dist-ok':'dist-warn')}">${h.birdieDist} yd</span>
+      </div>
+      ${rangeHtml}
+    `;
+  }
+
   function renderAll(){
     renderHolesList();
     const summary = renderSummary();
     renderWarnings(summary);
+    renderLiveCard();
   }
 
   // --- CSV export (matches plantilla-canchas-FEG.xlsx columns) ---
