@@ -25,12 +25,17 @@
     --ok-bg:rgba(111,207,151,0.1);
   }
   *{box-sizing:border-box;}
+  :root{
+    --app-height: 100vh;
+  }
   body{
     margin:0;
     font-family:'Inter',sans-serif;
     background:var(--forest-dark);
     color:var(--cream);
     height:100vh;
+    height:100dvh;
+    height:var(--app-height);
     display:flex;
     flex-direction:column;
     overflow:hidden;
@@ -60,6 +65,7 @@
     flex:1;
     display:flex;
     min-height:0;
+    position:relative;
   }
   .sidebar{
     width:360px;
@@ -168,6 +174,94 @@
   .dist-ok{color:var(--ok);}
   .dist-warn{color:var(--warn);}
   .dist-neutral{color:var(--muted);}
+  .dogleg-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    padding:6px 0;
+    flex-wrap:wrap;
+  }
+  .dogleg-label{
+    font-size:12px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:var(--cream);
+  }
+  .dogleg-btns{
+    display:flex;
+    gap:6px;
+  }
+  .btn-sm{
+    font-size:11px;
+    padding:5px 9px;
+  }
+  .dogleg-hint{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:8px;
+    line-height:1.4;
+  }
+  .save-row{
+    display:flex;
+    gap:8px;
+  }
+  .save-row input{
+    flex:1;
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    padding:7px 9px;
+    border-radius:6px;
+    border:1px solid rgba(244,241,230,0.25);
+    background:rgba(244,241,230,0.06);
+    color:var(--cream);
+  }
+  .save-row input:focus{outline:none;border-color:var(--line);}
+  .saved-list{
+    margin-top:10px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .saved-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    padding:8px 10px;
+    background:rgba(244,241,230,0.04);
+    border-radius:7px;
+    font-size:12px;
+  }
+  .saved-item .si-info{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    overflow:hidden;
+  }
+  .saved-item .si-name{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    color:var(--cream);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .saved-item .si-date{
+    font-size:10px;
+    color:var(--muted);
+  }
+  .saved-item .si-btns{
+    display:flex;
+    gap:5px;
+    flex-shrink:0;
+  }
+  .saved-empty{
+    font-size:12px;
+    color:var(--muted);
+    padding:6px 0;
+  }
   .map-wrap{
     flex:1;
     position:relative;
@@ -202,6 +296,50 @@
     flex-wrap:wrap;
   }
   .legend span{display:flex;align-items:center;gap:6px;}
+  .live-card{
+    position:absolute;
+    top:12px;
+    right:12px;
+    z-index:600;
+    background:rgba(11,43,29,0.94);
+    border:1px solid rgba(255,200,87,0.4);
+    border-radius:10px;
+    padding:10px 14px;
+    min-width:150px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.35);
+  }
+  .live-card .lc-hole{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    color:var(--cream);
+    margin-bottom:6px;
+  }
+  .live-card .lc-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    font-size:12px;
+    padding:2px 0;
+  }
+  .live-card .lc-row .lc-cat{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    color:var(--muted);
+  }
+  .live-card .lc-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .live-card .lc-val{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:13px;
+  }
+  .live-card .lc-range{
+    font-size:10px;
+    color:var(--muted);
+    margin-top:6px;
+  }
   .footer-bar{
     padding:10px 20px;
     background:var(--forest);
@@ -268,6 +406,146 @@
     font-size:12px;
     color:var(--muted);
   }
+
+  /* --- Botón flotante para abrir/cerrar el panel en pantallas chicas --- */
+  .sidebar-toggle{
+    display:none;
+    position:absolute;
+    bottom:12px;
+    right:12px;
+    z-index:900;
+    background:var(--line);
+    color:#2A1F00;
+    border:none;
+    border-radius:20px;
+    padding:8px 14px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:12px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.4);
+  }
+  .sidebar-backdrop{
+    display:none;
+  }
+
+  /* --- Tablets y celulares (hasta 860px de ancho) --- */
+  @media (max-width: 860px){
+    header{ padding:6px 12px; }
+    header h1{ font-size:13px; }
+    header .sub{ display:none; }
+    #activeHoleLabel{ display:none; }
+
+    .locate-bar{
+      padding:8px 12px;
+      flex-direction:column;
+      align-items:stretch;
+    }
+    .locate-bar input, .locate-bar .btn{
+      width:100%;
+      min-width:0;
+      padding:11px 12px;
+      font-size:15px;
+    }
+
+    .layout{ overflow:hidden; }
+
+    .sidebar{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      top:auto;
+      width:auto;
+      height:78%;
+      max-height:78%;
+      border-right:none;
+      border-top:1px solid rgba(244,241,230,0.2);
+      border-radius:18px 18px 0 0;
+      box-shadow:0 -6px 24px rgba(0,0,0,0.45);
+      transform:translateY(100%);
+      transition:transform 0.25s ease;
+      z-index:950;
+    }
+    .sidebar.open{ transform:translateY(0); }
+
+    .sidebar-toggle{ display:block; }
+    .sidebar.open ~ .sidebar-toggle,
+    .sidebar-toggle.hidden{ display:none; }
+
+    .sidebar-backdrop.open{
+      display:block;
+      position:absolute;
+      inset:0;
+      background:rgba(0,0,0,0.35);
+      z-index:940;
+    }
+
+    .par-select{ padding:8px 8px; font-size:13px; }
+    .hole-row{ padding:12px; }
+
+    .footer-bar{
+      flex-direction:column;
+      align-items:stretch;
+      gap:10px;
+      padding:10px 14px;
+    }
+    .footer-bar .btn{
+      width:100%;
+      padding:12px 14px;
+      font-size:14px;
+    }
+    .footer-bar > div[style]{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      width:100%;
+    }
+
+    .hint{
+      font-size:11px;
+      max-width:60%;
+      top:8px;
+    }
+    .live-card{
+      top:8px;
+      right:8px;
+      padding:7px 10px;
+      min-width:120px;
+    }
+    .live-card .lc-hole{ font-size:11px; margin-bottom:4px; }
+    .live-card .lc-row{ font-size:11px; }
+    .live-card .lc-val{ font-size:12px; }
+    .live-card .lc-range{ font-size:9px; }
+    .legend{
+      font-size:11px;
+      gap:8px;
+      padding:6px 9px;
+      bottom:10px;
+      left:10px;
+      right:10px;
+      justify-content:space-between;
+    }
+
+    .credit-bar{ font-size:10px; padding:5px 12px; }
+
+    #locateBar.in-sidebar, #footerBar.in-sidebar{
+      border:none;
+      background:transparent;
+      padding:16px 18px;
+      border-top:1px solid rgba(244,241,230,0.1);
+    }
+    #footerBar.in-sidebar > div[style]{
+      flex-direction:column;
+    }
+    #creditBar.in-sidebar{
+      border-top:1px solid rgba(244,241,230,0.1);
+      background:transparent;
+      padding:10px 18px 16px;
+    }
+  }
+
+  /* Marcadores un poco más grandes para dedos en pantallas táctiles */
+  @media (pointer: coarse){
+    .leaflet-marker-icon{ touch-action:none; }
+  }
 </style>
 </head>
 <body>
@@ -280,7 +558,8 @@
   <div class="active-hole-label" id="activeHoleLabel">Editando: <strong>Hoyo 1</strong></div>
 </header>
 
-<div class="locate-bar">
+<div id="locateBarAnchor" style="display:none;"></div>
+<div class="locate-bar" id="locateBar">
   <input type="text" id="searchInput" placeholder="Buscar dirección o club (ej: Golf Club Social La Paz, Entre Ríos)">
   <button class="btn" id="searchBtn">Buscar</button>
   <button class="btn btn-primary" id="relocateBtn">Traer los 9 hoyos al centro del mapa</button>
@@ -290,7 +569,16 @@
 </div>
 
 <div class="layout">
-  <div class="sidebar">
+  <div class="sidebar" id="sidebarPanel">
+
+    <div class="sidebar-section">
+      <h2>Mis canchas guardadas <span style="text-transform:none;font-weight:400;">(en este dispositivo)</span></h2>
+      <div class="save-row">
+        <input type="text" id="courseNameInput" placeholder="Nombre de la cancha (ej: La Paz)">
+        <button class="btn btn-primary btn-sm" id="saveCourseBtn">Guardar</button>
+      </div>
+      <div id="savedCoursesList" class="saved-list"></div>
+    </div>
 
     <div class="sidebar-section">
       <h2>Resumen del recorrido</h2>
@@ -306,6 +594,25 @@
       <div id="warningsBox"><div class="no-warnings">Todo dentro de los rangos AAG por ahora.</div></div>
     </div>
 
+    <div class="sidebar-section">
+      <h2>Quiebres (dogleg) — hoyo activo</h2>
+      <div class="dogleg-row">
+        <span class="dogleg-label"><span class="dot" style="background:var(--aguila)"></span>Águila <span id="eagleWpCount">0</span></span>
+        <div class="dogleg-btns">
+          <button class="btn btn-sm" id="addWpEagle">+ Agregar</button>
+          <button class="btn btn-sm" id="removeWpEagle">− Quitar último</button>
+        </div>
+      </div>
+      <div class="dogleg-row">
+        <span class="dogleg-label"><span class="dot" style="background:var(--birdie)"></span>Birdie <span id="birdieWpCount">0</span></span>
+        <div class="dogleg-btns">
+          <button class="btn btn-sm" id="addWpBirdie">+ Agregar</button>
+          <button class="btn btn-sm" id="removeWpBirdie">− Quitar último</button>
+        </div>
+      </div>
+      <div class="dogleg-hint">Un quiebre aparece en el mapa como un punto "+" arrastrable entre el tee y el green — movelo para trazar la curva real del hoyo.</div>
+    </div>
+
     <div class="sidebar-section" style="flex:1;">
       <h2>Hoyos (clic para editar)</h2>
       <div id="holesList"></div>
@@ -316,15 +623,20 @@
   <div class="map-wrap">
     <div id="map"></div>
     <div class="hint">Arrastrá los pines del hoyo activo. Los demás hoyos se ven atenuados de referencia.</div>
+    <div class="live-card" id="liveCard"></div>
     <div class="legend">
       <span><span class="dot" style="background:var(--aguila)"></span>Tee Águila</span>
       <span><span class="dot" style="background:var(--birdie)"></span>Tee Birdie</span>
       <span><span class="dot" style="background:var(--green-pin)"></span>Green</span>
     </div>
   </div>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <button class="sidebar-toggle" id="sidebarToggle">☰ Hoyos y resumen</button>
 </div>
 
-<div class="footer-bar">
+<div id="footerBarAnchor" style="display:none;"></div>
+<div class="footer-bar" id="footerBar">
   <div class="active-hole-label" id="footerHint">Seleccioná un par para el hoyo activo y ajustá los pines sobre la imagen satelital.</div>
   <div style="display:flex;gap:10px;">
     <button class="btn" id="exportCsv">Descargar CSV (planilla FEG)</button>
@@ -333,7 +645,8 @@
   </div>
 </div>
 
-<div class="credit-bar">Diseñado por Enrique Ignacio Fernández para la Federación Entrerriana de Golf — 2026</div>
+<div id="creditBarAnchor" style="display:none;"></div>
+<div class="credit-bar" id="creditBar">Diseñado por Enrique Ignacio Fernández para la Federación Entrerriana de Golf — 2026</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
@@ -348,6 +661,14 @@
   const TARGET_TOTAL = { aguila:2200, birdie:1600 };
 
   // --- Map setup ---
+  // --- Corrige el bug de 100vh en navegadores móviles: usamos la altura real del viewport ---
+  function setAppHeight(){
+    document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+  }
+  setAppHeight();
+  window.addEventListener('resize', setAppHeight);
+  window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 250));
+
   const map = L.map('map', { zoomControl: true }).setView(CENTER, 17);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 20,
@@ -376,6 +697,8 @@
       green: [baseLat + 0.00075, baseLng + 0.0006],
       eagleTee: [baseLat, baseLng],
       birdieTee: [baseLat + 0.0003, baseLng + 0.00025],
+      eagleWaypoints: [],
+      birdieWaypoints: [],
       eagleDist: 0,
       birdieDist: 0
     });
@@ -383,10 +706,18 @@
 
   let activeIndex = 0;
 
+  function pathDistanceMeters(points){
+    let total = 0;
+    for(let j=0;j<points.length-1;j++){ total += haversine(points[j], points[j+1]); }
+    return total;
+  }
+
   function recalcHole(i){
     const h = holes[i];
-    h.eagleDist = Math.round(metersToYards(haversine(h.eagleTee, h.green)));
-    h.birdieDist = Math.round(metersToYards(haversine(h.birdieTee, h.green)));
+    const eaglePath = [h.eagleTee, ...h.eagleWaypoints, h.green];
+    const birdiePath = [h.birdieTee, ...h.birdieWaypoints, h.green];
+    h.eagleDist = Math.round(metersToYards(pathDistanceMeters(eaglePath)));
+    h.birdieDist = Math.round(metersToYards(pathDistanceMeters(birdiePath)));
   }
   holes.forEach((_, i) => recalcHole(i));
 
@@ -422,7 +753,10 @@
   let inactiveLayer = L.layerGroup().addTo(map);
 
   function clearActiveLayers(){
-    Object.values(activeMarkers).forEach(m => map.removeLayer(m));
+    Object.values(activeMarkers).forEach(m => {
+      if(Array.isArray(m)){ m.forEach(mm => map.removeLayer(mm)); }
+      else { map.removeLayer(m); }
+    });
     Object.values(activeLines).forEach(l => map.removeLayer(l));
     activeMarkers = {};
     activeLines = {};
@@ -453,8 +787,11 @@
     activeMarkers.eagle = L.marker(h.eagleTee, { draggable:true, icon: makeDivIcon(getVar('--aguila'), 'A', true) }).addTo(map);
     activeMarkers.birdie = L.marker(h.birdieTee, { draggable:true, icon: makeDivIcon(getVar('--birdie'), 'B', true) }).addTo(map);
 
-    activeLines.eagle = L.polyline([h.eagleTee, h.green], { color: getVar('--aguila'), weight:4, opacity:0.9 }).addTo(map);
-    activeLines.birdie = L.polyline([h.birdieTee, h.green], { color: getVar('--birdie'), weight:4, opacity:0.9, dashArray:'2 8' }).addTo(map);
+    activeMarkers.eagleWaypoints = h.eagleWaypoints.map((wp) => makeWaypointMarker(wp, 'eagle'));
+    activeMarkers.birdieWaypoints = h.birdieWaypoints.map((wp) => makeWaypointMarker(wp, 'birdie'));
+
+    activeLines.eagle = L.polyline(buildPath(h.eagleTee, h.eagleWaypoints, h.green), { color: getVar('--aguila'), weight:4, opacity:0.9 }).addTo(map);
+    activeLines.birdie = L.polyline(buildPath(h.birdieTee, h.birdieWaypoints, h.green), { color: getVar('--birdie'), weight:4, opacity:0.9, dashArray:'2 8' }).addTo(map);
 
     activeMarkers.green.on('drag', onActiveDrag);
     activeMarkers.eagle.on('drag', onActiveDrag);
@@ -462,6 +799,32 @@
 
     drawInactiveHoles();
     document.getElementById('activeHoleLabel').innerHTML = `Editando: <strong>Hoyo ${activeIndex+1}</strong>`;
+    if(typeof updateToggleLabel === 'function') updateToggleLabel();
+  }
+
+  function buildPath(tee, waypoints, green){
+    return [tee, ...waypoints, green];
+  }
+
+  function makeWaypointMarker(latlng, category){
+    const color = category === 'eagle' ? getVar('--aguila') : getVar('--birdie');
+    const marker = L.marker(latlng, {
+      draggable:true,
+      icon: L.divIcon({
+        className:'',
+        html:`<div style="
+          width:18px;height:18px;border-radius:50%;
+          background:${color};
+          border:2px dashed rgba(244,241,230,0.9);
+          box-shadow:0 2px 6px rgba(0,0,0,0.4);
+          display:flex;align-items:center;justify-content:center;
+          font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:#fff;">+</div>`,
+        iconSize:[18,18],
+        iconAnchor:[9,9]
+      })
+    }).addTo(map);
+    marker.on('drag', onActiveDrag);
+    return marker;
   }
 
   function onActiveDrag(){
@@ -469,9 +832,49 @@
     h.green = [activeMarkers.green.getLatLng().lat, activeMarkers.green.getLatLng().lng];
     h.eagleTee = [activeMarkers.eagle.getLatLng().lat, activeMarkers.eagle.getLatLng().lng];
     h.birdieTee = [activeMarkers.birdie.getLatLng().lat, activeMarkers.birdie.getLatLng().lng];
-    activeLines.eagle.setLatLngs([h.eagleTee, h.green]);
-    activeLines.birdie.setLatLngs([h.birdieTee, h.green]);
+    h.eagleWaypoints = activeMarkers.eagleWaypoints.map(m => [m.getLatLng().lat, m.getLatLng().lng]);
+    h.birdieWaypoints = activeMarkers.birdieWaypoints.map(m => [m.getLatLng().lat, m.getLatLng().lng]);
+    activeLines.eagle.setLatLngs(buildPath(h.eagleTee, h.eagleWaypoints, h.green));
+    activeLines.birdie.setLatLngs(buildPath(h.birdieTee, h.birdieWaypoints, h.green));
     recalcHole(activeIndex);
+    renderAll();
+  }
+
+  function addWaypoint(category){
+    const h = holes[activeIndex];
+    const isEagle = category === 'eagle';
+    const tee = isEagle ? h.eagleTee : h.birdieTee;
+    const waypoints = isEagle ? h.eagleWaypoints : h.birdieWaypoints;
+    const path = buildPath(tee, waypoints, h.green);
+    // Insertar el nuevo quiebre en el punto medio del último tramo (entre el penúltimo punto y el green)
+    const a = path[path.length - 2];
+    const b = path[path.length - 1];
+    const mid = [(a[0]+b[0])/2, (a[1]+b[1])/2];
+
+    waypoints.push(mid);
+    const marker = makeWaypointMarker(mid, category);
+    if(isEagle){ activeMarkers.eagleWaypoints.push(marker); }
+    else { activeMarkers.birdieWaypoints.push(marker); }
+
+    recalcHole(activeIndex);
+    activeLines.eagle.setLatLngs(buildPath(h.eagleTee, h.eagleWaypoints, h.green));
+    activeLines.birdie.setLatLngs(buildPath(h.birdieTee, h.birdieWaypoints, h.green));
+    renderAll();
+  }
+
+  function removeLastWaypoint(category){
+    const h = holes[activeIndex];
+    const isEagle = category === 'eagle';
+    const waypoints = isEagle ? h.eagleWaypoints : h.birdieWaypoints;
+    const markers = isEagle ? activeMarkers.eagleWaypoints : activeMarkers.birdieWaypoints;
+    if(waypoints.length === 0) return;
+    waypoints.pop();
+    const marker = markers.pop();
+    map.removeLayer(marker);
+
+    recalcHole(activeIndex);
+    activeLines.eagle.setLatLngs(buildPath(h.eagleTee, h.eagleWaypoints, h.green));
+    activeLines.birdie.setLatLngs(buildPath(h.birdieTee, h.birdieWaypoints, h.green));
     renderAll();
   }
 
@@ -479,6 +882,7 @@
     activeIndex = i;
     drawActiveHole();
     renderAll();
+    closeMobileSidebar();
   }
 
   // --- Rendering sidebar + summary + warnings ---
@@ -589,11 +993,52 @@
     }
   }
 
+  function renderLiveCard(){
+    const h = holes[activeIndex];
+    const card = document.getElementById('liveCard');
+    const eagleOk = rangeCheck('aguila', h.par, h.eagleDist);
+    const birdieOk = rangeCheck('birdie', h.par, h.birdieDist);
+    const parLabel = h.par ? `Par ${h.par}` : 'Sin par asignado';
+
+    let rangeHtml = '';
+    if(h.par){
+      const ra = RANGES.aguila[h.par];
+      const rb = RANGES.birdie[h.par];
+      rangeHtml = `<div class="lc-range">Rango AAG — Águila ${ra[0]}-${ra[1]} yd · Birdie ${rb[0]}-${rb[1]} yd</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="lc-hole">Hoyo ${activeIndex + 1} · ${parLabel}</div>
+      <div class="lc-row">
+        <span class="lc-cat"><span class="lc-dot" style="background:var(--aguila)"></span>Águila</span>
+        <span class="lc-val ${eagleOk===null?'':(eagleOk?'dist-ok':'dist-warn')}">${h.eagleDist} yd</span>
+      </div>
+      <div class="lc-row">
+        <span class="lc-cat"><span class="lc-dot" style="background:var(--birdie)"></span>Birdie</span>
+        <span class="lc-val ${birdieOk===null?'':(birdieOk?'dist-ok':'dist-warn')}">${h.birdieDist} yd</span>
+      </div>
+      ${rangeHtml}
+    `;
+  }
+
+  function renderDoglegCounts(){
+    const h = holes[activeIndex];
+    document.getElementById('eagleWpCount').textContent = `(${h.eagleWaypoints.length})`;
+    document.getElementById('birdieWpCount').textContent = `(${h.birdieWaypoints.length})`;
+  }
+
   function renderAll(){
     renderHolesList();
     const summary = renderSummary();
     renderWarnings(summary);
+    renderLiveCard();
+    renderDoglegCounts();
   }
+
+  document.getElementById('addWpEagle').addEventListener('click', () => addWaypoint('eagle'));
+  document.getElementById('removeWpEagle').addEventListener('click', () => removeLastWaypoint('eagle'));
+  document.getElementById('addWpBirdie').addEventListener('click', () => addWaypoint('birdie'));
+  document.getElementById('removeWpBirdie').addEventListener('click', () => removeLastWaypoint('birdie'));
 
   // --- CSV export (matches plantilla-canchas-FEG.xlsx columns) ---
   function buildCsv(){
@@ -668,34 +1113,28 @@
         type: 'Feature',
         geometry: {
           type: 'LineString',
-          coordinates: [
-            [h.eagleTee[1], h.eagleTee[0]],
-            [h.green[1], h.green[0]]
-          ]
+          coordinates: buildPath(h.eagleTee, h.eagleWaypoints, h.green).map(p => [p[1], p[0]])
         },
         properties: {
           Hoyo: holeNum,
           Categoria: 'Línea Águila',
           Dist_yardas: h.eagleDist,
           Par: par,
-          Descripcion: `Hoyo ${holeNum} · Águila · ${h.eagleDist} yd`
+          Descripcion: `Hoyo ${holeNum} · Águila · ${h.eagleDist} yd${h.eagleWaypoints.length ? ' · ' + h.eagleWaypoints.length + ' quiebre(s)' : ''}`
         }
       });
       features.push({
         type: 'Feature',
         geometry: {
           type: 'LineString',
-          coordinates: [
-            [h.birdieTee[1], h.birdieTee[0]],
-            [h.green[1], h.green[0]]
-          ]
+          coordinates: buildPath(h.birdieTee, h.birdieWaypoints, h.green).map(p => [p[1], p[0]])
         },
         properties: {
           Hoyo: holeNum,
           Categoria: 'Línea Birdie',
           Dist_yardas: h.birdieDist,
           Par: par,
-          Descripcion: `Hoyo ${holeNum} · Birdie · ${h.birdieDist} yd`
+          Descripcion: `Hoyo ${holeNum} · Birdie · ${h.birdieDist} yd${h.birdieWaypoints.length ? ' · ' + h.birdieWaypoints.length + ' quiebre(s)' : ''}`
         }
       });
     });
@@ -772,6 +1211,8 @@
       h.green = [baseLat + 0.00075, baseLng + 0.0006];
       h.eagleTee = [baseLat, baseLng];
       h.birdieTee = [baseLat + 0.0003, baseLng + 0.00025];
+      h.eagleWaypoints = [];
+      h.birdieWaypoints = [];
       recalcHole(i);
     });
     drawActiveHole();
@@ -780,6 +1221,128 @@
   }
 
   document.getElementById('relocateBtn').addEventListener('click', relocateAllHoles);
+
+  // --- Guardar / cargar canchas completas en localStorage (por dispositivo/navegador) ---
+  const STORAGE_KEY = 'feg-canchas-guardadas-v1';
+
+  function slugify(str){
+    return str.toString().trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // saca tildes
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || 'cancha';
+  }
+
+  function getSavedCourses(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){
+      return [];
+    }
+  }
+
+  function setSavedCourses(list){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      return true;
+    } catch(e){
+      document.getElementById('searchStatus').textContent = 'No se pudo guardar: el almacenamiento del navegador está lleno o bloqueado.';
+      return false;
+    }
+  }
+
+  function replaceHolesData(newHoles){
+    holes.splice(0, holes.length, ...newHoles.map(h => ({
+      par: h.par || null,
+      green: h.green,
+      eagleTee: h.eagleTee,
+      birdieTee: h.birdieTee,
+      eagleWaypoints: Array.isArray(h.eagleWaypoints) ? h.eagleWaypoints : [],
+      birdieWaypoints: Array.isArray(h.birdieWaypoints) ? h.birdieWaypoints : [],
+      eagleDist: 0,
+      birdieDist: 0
+    })));
+    holes.forEach((_, i) => recalcHole(i));
+  }
+
+  function saveCurrentCourse(){
+    const nameInput = document.getElementById('courseNameInput');
+    const name = nameInput.value.trim();
+    if(!name){
+      document.getElementById('searchStatus').textContent = 'Ponele un nombre a la cancha antes de guardar.';
+      nameInput.focus();
+      return;
+    }
+    const id = slugify(name);
+    const list = getSavedCourses().filter(c => c.id !== id);
+    list.push({
+      id,
+      nombre: name,
+      fecha: new Date().toLocaleString('es-AR'),
+      holes: JSON.parse(JSON.stringify(holes))
+    });
+    if(setSavedCourses(list)){
+      document.getElementById('searchStatus').textContent = `"${name}" guardada en este dispositivo.`;
+      renderSavedCoursesList();
+    }
+  }
+
+  function loadSavedCourse(id){
+    const list = getSavedCourses();
+    const entry = list.find(c => c.id === id);
+    if(!entry) return;
+    replaceHolesData(entry.holes);
+    document.getElementById('courseNameInput').value = entry.nombre;
+    activeIndex = 0;
+    if(holes[0] && holes[0].green){
+      map.setView(holes[0].green, 17);
+    }
+    drawActiveHole();
+    renderAll();
+    document.getElementById('searchStatus').textContent = `"${entry.nombre}" cargada — seguí editando.`;
+    closeMobileSidebar();
+  }
+
+  function deleteSavedCourse(id, nombre){
+    if(!confirm(`¿Borrar la cancha guardada "${nombre}"? Esto no afecta lo que estás editando ahora, solo la copia guardada.`)) return;
+    const list = getSavedCourses().filter(c => c.id !== id);
+    setSavedCourses(list);
+    renderSavedCoursesList();
+  }
+
+  function renderSavedCoursesList(){
+    const container = document.getElementById('savedCoursesList');
+    const list = getSavedCourses().sort((a,b) => (a.nombre > b.nombre ? 1 : -1));
+    if(list.length === 0){
+      container.innerHTML = '<div class="saved-empty">Todavía no guardaste ninguna cancha en este dispositivo.</div>';
+      return;
+    }
+    container.innerHTML = list.map(c => `
+      <div class="saved-item">
+        <div class="si-info">
+          <span class="si-name">${c.nombre}</span>
+          <span class="si-date">${c.fecha}</span>
+        </div>
+        <div class="si-btns">
+          <button class="btn btn-sm load-course-btn" data-id="${c.id}">Cargar</button>
+          <button class="btn btn-sm delete-course-btn" data-id="${c.id}" data-name="${c.nombre}">✕</button>
+        </div>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.load-course-btn').forEach(btn => {
+      btn.addEventListener('click', () => loadSavedCourse(btn.dataset.id));
+    });
+    container.querySelectorAll('.delete-course-btn').forEach(btn => {
+      btn.addEventListener('click', () => deleteSavedCourse(btn.dataset.id, btn.dataset.name));
+    });
+  }
+
+  document.getElementById('saveCourseBtn').addEventListener('click', saveCurrentCourse);
+  document.getElementById('courseNameInput').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){ e.preventDefault(); saveCurrentCourse(); }
+  });
+  renderSavedCoursesList();
 
   // --- Cargar cancha desde CSV (mismo formato que exporta esta herramienta) ---
   function parseCsvLine(line){
@@ -862,6 +1425,8 @@
       if(src.green) holes[i].green = src.green;
       if(src.eagleTee) holes[i].eagleTee = src.eagleTee;
       if(src.birdieTee) holes[i].birdieTee = src.birdieTee;
+      holes[i].eagleWaypoints = [];
+      holes[i].birdieWaypoints = [];
       holes[i].par = src.par || null;
       recalcHole(i);
       if(src.green || src.eagleTee || src.birdieTee) loadedCount++;
@@ -893,8 +1458,73 @@
   });
 
 
+  // --- Panel deslizable para celulares/tablets ---
+  const sidebarPanel = document.getElementById('sidebarPanel');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  const sidebarToggle = document.getElementById('sidebarToggle');
+
+  function openMobileSidebar(){
+    sidebarPanel.classList.add('open');
+    sidebarBackdrop.classList.add('open');
+    sidebarToggle.classList.add('hidden');
+  }
+  function closeMobileSidebar(){
+    sidebarPanel.classList.remove('open');
+    sidebarBackdrop.classList.remove('open');
+    sidebarToggle.classList.remove('hidden');
+    setTimeout(() => map.invalidateSize(), 260);
+  }
+  sidebarToggle.addEventListener('click', openMobileSidebar);
+  sidebarBackdrop.addEventListener('click', closeMobileSidebar);
+
+  // El mapa necesita recalcular su tamaño si el navegador rota o cambia de tamaño
+  window.addEventListener('resize', () => map.invalidateSize());
+  window.addEventListener('orientationchange', () => setTimeout(() => map.invalidateSize(), 300));
+
+  // --- En mobile, mover la barra de búsqueda y la de exportar dentro del panel deslizable,
+  //     para que en pantalla solo quede el mapa y el header, maximizando la vista satelital ---
+  const locateBar = document.getElementById('locateBar');
+  const footerBar = document.getElementById('footerBar');
+  const creditBar = document.getElementById('creditBar');
+  const locateBarAnchor = document.getElementById('locateBarAnchor');
+  const footerBarAnchor = document.getElementById('footerBarAnchor');
+  const creditBarAnchor = document.getElementById('creditBarAnchor');
+  let barsInSidebar = false;
+
+  function layoutBarsForScreen(){
+    const isMobile = window.innerWidth <= 860;
+    if(isMobile && !barsInSidebar){
+      sidebarPanel.appendChild(locateBar);
+      sidebarPanel.appendChild(footerBar);
+      sidebarPanel.appendChild(creditBar);
+      locateBar.classList.add('in-sidebar');
+      footerBar.classList.add('in-sidebar');
+      creditBar.classList.add('in-sidebar');
+      barsInSidebar = true;
+    } else if(!isMobile && barsInSidebar){
+      locateBarAnchor.parentNode.insertBefore(locateBar, locateBarAnchor.nextSibling);
+      footerBarAnchor.parentNode.insertBefore(footerBar, footerBarAnchor.nextSibling);
+      creditBarAnchor.parentNode.insertBefore(creditBar, creditBarAnchor.nextSibling);
+      locateBar.classList.remove('in-sidebar');
+      footerBar.classList.remove('in-sidebar');
+      creditBar.classList.remove('in-sidebar');
+      barsInSidebar = false;
+    }
+    updateToggleLabel();
+  }
+  layoutBarsForScreen();
+  window.addEventListener('resize', layoutBarsForScreen);
+
+  function updateToggleLabel(){
+    sidebarToggle.textContent = `☰ Hoyo ${activeIndex + 1}`;
+  }
+
   drawActiveHole();
   renderAll();
+
+  // Recálculo de seguridad al terminar de asentarse la página (fuentes, barra de direcciones, etc.)
+  setTimeout(() => { setAppHeight(); map.invalidateSize(); }, 300);
+  window.addEventListener('load', () => { setAppHeight(); map.invalidateSize(); });
 </script>
 </body>
 </html>
